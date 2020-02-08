@@ -36,20 +36,19 @@ function App() {
   );
   const [price, setPrice] = React.useState("");
   const [volume, setVolume] = React.useState("");
+  const [symbol, setSymbol] = React.useState("");
 
-  const setData = async e => {
-    e.preventDefault();
+  const setData = async () => {
     const accounts = await web3.eth.getAccounts();
     const account = accounts[0];
     console.log("Account 0 = ", accounts[0]);
     const result = await stockQuote.methods
-      .setStock(price, volume)
+      .setStock(symbol, price, volume)
       .send({ from: account });
     console.log(result);
   };
 
-  const getData = async e => {
-    e.preventDefault();
+  const getData = async () => {
     var retval = await stockQuote.methods
       .getStockPrice(web3.utils.fromAscii("AAAA"))
       .call();
@@ -62,7 +61,11 @@ function App() {
         <Form>
           <FormControl fullWidth>
             <div>
-              <TextField label="Symbol" fullWidth />
+              <TextField
+                label="Symbol"
+                fullWidth
+                onChange={e => setSymbol(e.target.value)}
+              />
             </div>
             <Box m={1} />
             <div>
