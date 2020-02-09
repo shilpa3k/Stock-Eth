@@ -24,7 +24,9 @@ const stockQuote = new web3.eth.Contract(
 );
 
 function App() {
-  const [stock, setStock] = React.useState(
+  const [data, setStock] = React.useState("");
+
+  React.useEffect(() => {
     fetch(
       "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=MSFT&apikey=FM15CT1NBDLTAC08"
     )
@@ -32,8 +34,9 @@ function App() {
       .then(data => {
         setStock({ quote: data["Global Quote"] });
       })
-      .catch(console.log)
-  );
+      .catch(console.log);
+  }, []);
+
   const [price, setPrice] = React.useState("");
   const [volume, setVolume] = React.useState("");
   const [symbol, setSymbol] = React.useState("");
