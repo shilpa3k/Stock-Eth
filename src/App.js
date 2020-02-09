@@ -4,60 +4,61 @@ import { STOCK_ORACLE_ABI, STOCK_ORACLE_ADDRESS } from "./quotecontract";
 import "./App.css";
 import "react-bootstrap";
 import Form from "react-bootstrap/Form";
-// import { Button } from "react-bootstrap";
 import Button from "@material-ui/core/Button";
 import FormControl from "@material-ui/core/FormControl";
-// import InputLabel from "@material-ui/core/InputLabel";
-// import Input from "@material-ui/core/Input";
 import Box from "@material-ui/core/Box";
 import TextField from "@material-ui/core/TextField";
-
 // FM15CT1NBDLTAC08
-
 // Web3 provider
 const web3 = new Web3("http://localhost:8545");
-
-//contract name
-const stockQuote = new web3.eth.Contract(
-  STOCK_ORACLE_ABI,
-  STOCK_ORACLE_ADDRESS
-);
-
 function App() {
   const [data, setStock] = React.useState("");
-
-  React.useEffect(() => {
-    fetch(
-      "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=MSFT&apikey=FM15CT1NBDLTAC08"
-    )
-      .then(res => res.json())
-      .then(data => {
-        setStock({ quote: data["Global Quote"] });
-      })
-      .catch(console.log);
-  }, []);
-
+  //contract name
+  const stockQuote = new web3.eth.Contract(
+    STOCK_ORACLE_ABI,
+    STOCK_ORACLE_ADDRESS
+  );
   const [price, setPrice] = React.useState("");
   const [volume, setVolume] = React.useState("");
   const [symbol, setSymbol] = React.useState("");
-
+  const [searchSymbol, setSearchSymbol] = React.useState("");
   const setData = async () => {
+    fetch(
+      "https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=" +
+        symbol +
+        "&apikey=FM15CT1NBDLTAC08"
+    )
+      .then(response => {
+        return response.json();
+      })
+      .then(data => {
+        const quoteData = data["Global Quote"];
+        console.log(quoteData);
+        console.log(quoteData["01. symbol"]);
+        console.log(quoteData["05. price"]);
+        console.log(quoteData["06. volume"]);
+        setVolume(quoteData["06. volume"]);
+        setPrice(quoteData[`05. price`]);
+      })
+      .catch(error => {
+        console.error(`Error:`, error);
+      });
+    const symbolHex = web3.utils.stringToHex(symbol);
+    console.log(symbolHex);
     const accounts = await web3.eth.getAccounts();
     const account = accounts[0];
-    console.log("Account 0 = ", accounts[0]);
+    console.log("Account 0 =", accounts[0]);
     const result = await stockQuote.methods
-      .setStock(symbol, price, volume)
+      .setStock(symbolHex, price, volume)
       .send({ from: account });
     console.log(result);
   };
-
   const getData = async () => {
     var retval = await stockQuote.methods
-      .getStockPrice(web3.utils.fromAscii("AAAA"))
+      .getStockPrice(web3.utils.fromAscii(searchSymbol))
       .call();
     console.log(retval);
   };
-
   return (
     <div className="box m-auto">
       <div className="App-Content">
@@ -94,7 +95,11 @@ function App() {
             </Button>
             <Box m={3} />
             <div className="form-group">
-              <TextField label="Symbol Search" fullWidth />
+              <TextField
+                label="Symbol Search"
+                fullWidth
+                onChange={e => setSearchSymbol(e.target.value)}
+              />
               <Box m={3} />
               <Button onClick={getData} variant="contained" color="primary">
                 Search
@@ -106,5 +111,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
